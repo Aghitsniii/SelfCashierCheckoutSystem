@@ -12,7 +12,7 @@ self-checkout-system/
 │   ├── database.db                harga produk
 │   ├── models/                    best_web.pt (model aktif), yolo26n.pt (model dasar)
 │   ├── training/                  download dataset, training, tes kamera, dataset
-│   ├── docs/                      README asli scanner
+│   ├── docs/
 │   ├── requirements.txt
 │   └── .env.example
 ├── ui/                    Tampilan (disajikan oleh backend scanner)
