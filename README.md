@@ -26,10 +26,17 @@ self-checkout-system/
 ## Menjalankan
 
 1. **Payment Gateway** (lihat `payment-gateway/README.md` untuk login GoPay dan `.env`):
+
+ ```bash
+   cd payment-gateway
+   node login.js
+login menggunakan akun gopay merchant dan sesi akan tersimpan
+   ```
+
    ```bash
    cd payment-gateway
    npm install
-   node server.js
+   npm start server.js
    ```
 2. **AI Scanner + UI**:
    ```bash
@@ -45,3 +52,6 @@ Backend memakai path relatif terhadap lokasi filenya, jadi `uvicorn` boleh dijal
 ## Alur
 
 Scanner mengisi keranjang, lalu "Lanjut ke Pembayaran" (atau hitung mundur 8 detik) membuat QRIS lewat gateway. Halaman berhasil muncul hanya setelah gateway memverifikasi pembayaran, lalu kembali ke scanner dalam 5 detik.#
+
+
+Credit Payment Gateway : https://github.com/ahmadzakiyox/shoppepay-api-gateway
