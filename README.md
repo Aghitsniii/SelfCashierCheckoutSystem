@@ -25,7 +25,7 @@ self-checkout-system/
 
 ## Menjalankan Secara Lokal
 
-1. **Payment Gateway (lihat `payment-gateway/README.md` untuk login GoPay dan `.env`):**
+1. **Payment Gateway:**
 
  ```bash
 cd payment-gateway
