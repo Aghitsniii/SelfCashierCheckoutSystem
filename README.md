@@ -25,7 +25,7 @@ self-checkout-system/
 
 ## Menjalankan
 
-1. ### Payment Gateway (lihat `payment-gateway/README.md` untuk login GoPay dan `.env`):
+1. **Payment Gateway (lihat `payment-gateway/README.md` untuk login GoPay dan `.env`):**
 
  ```bash
 cd payment-gateway
@@ -40,7 +40,7 @@ npm start server.js
 - Sesi login akan disimpan secara permanen di file `.GOPAY_SESI_JANGAN_DIHAPUS.json`.
 
 
-2. ### AI Scanner + UI:
+2. **AI Scanner + UI**:
 ```bash
 cd ai-scanner
 pip install -r requirements.txt
@@ -48,7 +48,7 @@ cp .env.example .env        # isi GATEWAY_API_KEY sama dengan .env gateway
 uvicorn backend_web_dashboard:app --host 0.0.0.0 --port 8000
  ```
 
-3. ### Buka http://localhost:8000`. Panel admin: `http://localhost:8000/#admin
+3. **Buka http://localhost:8000`. Panel admin: `http://localhost:8000/#admin**
 
 Backend memakai path relatif terhadap lokasi filenya, jadi `uvicorn` boleh dijalankan dari folder mana pun selama `--app-dir ai-scanner` diberikan.
 
