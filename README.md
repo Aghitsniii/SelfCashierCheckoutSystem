@@ -28,15 +28,18 @@ self-checkout-system/
 1. **Payment Gateway** (lihat `payment-gateway/README.md` untuk login GoPay dan `.env`):
 
  ```bash
-    cd payment-gateway
-    node login.js
+cd payment-gateway
+node login.js
    ```
-login menggunakan akun gopay merchant
-
    ```bash
-   npm install
-   npm start server.js
+npm install
+npm start server.js
    ```
+Masukkan nomor HP GoBiz (contoh: 081234567425).
+Masukkan kode OTP (4 digit) yang dikirimkan via SMS/WA.
+Sesi login akan disimpan secara permanen di file .GOPAY_SESI_JANGAN_DIHAPUS.json.
+
+
 2. **AI Scanner + UI**:
    ```bash
    cd ai-scanner
@@ -53,4 +56,4 @@ Backend memakai path relatif terhadap lokasi filenya, jadi `uvicorn` boleh dijal
 Scanner mengisi keranjang, lalu "Lanjut ke Pembayaran" (atau hitung mundur 8 detik) membuat QRIS lewat gateway. Halaman berhasil muncul hanya setelah gateway memverifikasi pembayaran, lalu kembali ke scanner dalam 5 detik.#
 
 
-Credit Payment Gateway : https://github.com/ahmadzakiyox/shoppepay-api-gateway
+Credit Payment Gateway : https://github.com/ahmadzakiyox/gopay-api-gateaway
