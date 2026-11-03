@@ -35,9 +35,9 @@ node login.js
 npm install
 npm start server.js
    ```
-Masukkan nomor HP GoBiz (contoh: 081234567425).
-Masukkan kode OTP (4 digit) yang dikirimkan via SMS/WA.
-Sesi login akan disimpan secara permanen di file .GOPAY_SESI_JANGAN_DIHAPUS.json.
+- Masukkan nomor HP GoBiz (contoh: `085119772671`).
+- Masukkan kode OTP (4 digit) yang dikirimkan via SMS/WA.
+- Sesi login akan disimpan secara permanen di file `.GOPAY_SESI_JANGAN_DIHAPUS.json`.
 
 
 2. **AI Scanner + UI**:
