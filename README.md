@@ -28,13 +28,12 @@ self-checkout-system/
 1. **Payment Gateway** (lihat `payment-gateway/README.md` untuk login GoPay dan `.env`):
 
  ```bash
-   cd payment-gateway
-   node login.js
-login menggunakan akun gopay merchant dan sesi akan tersimpan
+    cd payment-gateway
+    node login.js
    ```
+login menggunakan akun gopay merchant
 
    ```bash
-   cd payment-gateway
    npm install
    npm start server.js
    ```
