@@ -23,7 +23,7 @@ self-checkout-system/
 └── payment-gateway/       Payment Gateway Node.js (port 3000), tidak diubah
 ```
 
-## Menjalankan
+## Menjalankan Secara Lokal
 
 1. **Payment Gateway (lihat `payment-gateway/README.md` untuk login GoPay dan `.env`):**
 
