@@ -47,7 +47,8 @@ pip install -r requirements.txt
 cp .env.example .env        # isi GATEWAY_API_KEY sama dengan .env gateway
 uvicorn backend_web_dashboard:app --host 0.0.0.0 --port 8000
  ```
-3. Buka `http://localhost:8000`. Panel admin: `http://localhost:8000/#admin`.
+
+3. Buka `http://localhost:8000`. Panel admin: `http://localhost:8000/#admin`
 
 Backend memakai path relatif terhadap lokasi filenya, jadi `uvicorn` boleh dijalankan dari folder mana pun selama `--app-dir ai-scanner` diberikan.
 
