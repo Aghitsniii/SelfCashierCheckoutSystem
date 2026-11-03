@@ -1,0 +1,9 @@
+fastapi==0.162.0
+opencv_python==5.0.0.93
+opencv_python_headless==5.0.0.93
+python-dotenv==1.2.4
+Requests==2.34.2
+roboflow==1.7.2
+ultralytics==8.4.185
+uvicorn==0.54.0
+python-multipart==0.0.32

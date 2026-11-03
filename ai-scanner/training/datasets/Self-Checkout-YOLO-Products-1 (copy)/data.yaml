@@ -1,0 +1,13 @@
+train: ../train/images
+val: ../valid/images
+test: ../test/images
+
+nc: 8
+names: ['Frisian Flag Kental Manis', 'Fruit Tea Apple BlackCurrent', 'GIV Bodywash Flowers SweetBerries', 'Garam Segitiga Emas', 'Guribee Layers Keju Cripsy', 'Mama Lime Sabun Cuci Piring', 'Sari Roti Classic Choco Bun', 'Ultramilk Strawberry 200ml']
+
+roboflow:
+  workspace: luthfi-random-s-workspace
+  project: self-checkout-yolo-products
+  version: 1
+  license: Private
+  url: https://app.roboflow.com/luthfi-random-s-workspace/self-checkout-yolo-products/1

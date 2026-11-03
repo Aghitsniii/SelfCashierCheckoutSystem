@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Toko Contoh · Coba QRIS Dinamis</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#15222B;--muted:#5E6C77;--line:#D5DDE2;--bg:#E8EDF0;--paper:#fff;--qris:#D9261C;--ok:#0F8F5F;--warn:#9A5B00;
+--sans:'IBM Plex Sans',system-ui,sans-serif;--mono:'IBM Plex Mono',ui-monospace,monospace}
+@media(prefers-color-scheme:dark){:root{--ink:#E8EEF2;--muted:#9AA9B4;--line:#33424D;--bg:#10181E;--paper:#1A252D;--qris:#FF6A5F;--ok:#3DD598;--warn:#F0B35A}}
+*{box-sizing:border-box;margin:0}
+[hidden]{display:none!important}
+body{font-family:var(--sans);background:var(--bg);color:var(--ink);padding:28px 16px 48px}
+.wrap{max-width:900px;margin:0 auto}
+h1{font-size:24px;font-weight:600}
+.lead{color:var(--muted);font-size:14.5px;margin:6px 0 22px;max-width:56ch;line-height:1.5}
+.grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,340px);gap:18px;align-items:start}
+@media(max-width:760px){.grid{grid-template-columns:1fr}}
+.products{display:grid;gap:10px}
+.prod{display:flex;gap:14px;align-items:center;background:var(--paper);border-radius:10px;padding:14px;box-shadow:0 1px 2px rgba(0,0,0,.08)}
+.tile{flex:none;width:52px;height:52px;border-radius:8px;display:grid;place-items:center;font:600 20px var(--mono);color:#fff}
+.prod div.t{flex:1;min-width:0}.prod b{font-weight:600;font-size:15px}.prod small{display:block;color:var(--muted);font-size:13px;margin-top:2px}
+.price{font:600 15px var(--mono);margin-right:6px}
+button{font:500 14px var(--sans);cursor:pointer}
+.add{border:1px solid var(--ink);background:none;color:var(--ink);border-radius:8px;padding:8px 12px}
+.add:hover{background:var(--ink);color:var(--paper)}
+.add:focus-visible,.q:focus-visible,.again:focus-visible{outline:2px solid var(--qris);outline-offset:2px}
+.receipt{background:var(--paper);border-radius:10px;box-shadow:0 1px 2px rgba(0,0,0,.08),0 12px 32px -12px rgba(0,0,0,.25);overflow:hidden;position:sticky;top:16px}
+.receipt h2{font-size:15px;font-weight:600;padding:18px 20px 8px}
+.lines{padding:0 20px 14px;display:grid;gap:8px}
+.empty{color:var(--muted);font-size:14px;padding:6px 0}
+.line{display:grid;grid-template-columns:1fr auto auto;gap:10px;align-items:center;font-size:14px}
+.qty{display:flex;align-items:center;gap:6px;font:500 14px var(--mono)}
+.q{width:26px;height:26px;border:1px solid var(--line);border-radius:6px;background:none;color:var(--ink);padding:0}
+.q:disabled{opacity:.4;cursor:default}
+.sum{display:flex;justify-content:space-between;padding:12px 20px;font:600 18px var(--mono);border-top:2px dashed var(--line)}
+.pay{padding:4px 20px 20px;display:none;justify-items:center;gap:12px}
+.pay.on{display:grid}
+.qrbox{position:relative;width:220px;height:220px;background:#fff;border:1px solid var(--line);border-radius:8px;padding:8px}
+.qrbox img{width:100%;height:100%;display:block;transition:opacity .4s}
+.qrbox .ph{position:absolute;inset:0;display:grid;place-items:center;font-size:13px;color:#5E6C77;background:#fff;border-radius:8px}
+.stamp{position:absolute;inset:0;display:none;place-items:center;pointer-events:none}
+.stamp span{font:600 36px var(--mono);letter-spacing:3px;padding:6px 16px;border:4px solid;border-radius:8px;transform:rotate(-9deg)}
+.done .qrbox img,.gone .qrbox img{opacity:.08}
+.done .stamp,.gone .stamp{display:grid}
+.done .stamp span{color:#0F8F5F;animation:st .45s cubic-bezier(.2,1.4,.4,1)}
+.gone .stamp span{color:#D9261C;font-size:24px}
+@keyframes st{from{transform:rotate(-9deg) scale(2.2);opacity:0}to{transform:rotate(-9deg) scale(1);opacity:1}}
+.status{width:100%;text-align:center;font-weight:600;font-size:14px;padding:10px;border-radius:8px;background:rgba(154,91,0,.1);color:var(--warn)}
+.done .status{background:rgba(15,143,95,.12);color:var(--ok)}.gone .status{background:rgba(217,38,28,.1);color:var(--qris)}
+.meta{display:flex;justify-content:space-between;width:100%;font-size:13px;color:var(--muted)}.meta b{font:600 14px var(--mono);color:var(--ink)}
+.again{width:100%;border:1px solid var(--line);background:none;color:var(--ink);border-radius:8px;padding:10px;display:none}
+.done .again,.gone .again{display:block}
+.err{color:var(--qris);font-size:13px;text-align:center}
+footer{margin-top:26px;font-size:13px;color:var(--muted)}footer a{color:var(--muted)}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Toko Contoh</h1>
+  <p class="lead">Tambahkan produk ke keranjang. QRIS dinamis dibuat otomatis sesuai total belanja. Semua produk di sini hanya Rp 1, jadi aman untuk uji coba.</p>
+  <div class="grid">
+    <div class="products" id="products"></div>
+    <aside class="receipt" id="rc">
+      <h2>Keranjang</h2>
+      <div class="lines" id="lines"></div>
+      <div class="sum"><span>Total</span><span id="total">Rp 0</span></div>
+      <div class="pay" id="pay">
+        <div class="qrbox"><img id="qr" alt="Kode QRIS" hidden><div class="ph" id="ph">Membuat QRIS…</div><div class="stamp"><span id="stamp"></span></div></div>
+        <div class="meta"><span>Sisa waktu</span><b id="timer">--:--</b></div>
+        <div class="status" id="status" role="status" aria-live="polite">Menunggu pembayaran</div>
+        <div class="err" id="err" role="alert"></div>
+        <button class="again" id="again">Belanja lagi</button>
+      </div>
+    </aside>
+  </div>
+  <footer>Pemilik toko? <a href="/admin">Masuk kasir</a></footer>
+</div>
+<script>
+const $ = s => document.getElementById(s);
+const rp = n => 'Rp ' + Number(n).toLocaleString('id-ID');
+const COLORS = ['#D9261C', '#0B6E99', '#6B4FBB', '#0F8F5F'];
+let products = [], cart = {}, cur = null, seq = 0, tDebounce, tPoll, tClock, offset = 0, locked = false, busy = false;
+
+fetch('/api/demo/products').then(r => r.json()).then(d => {
+  if (!d.success) { $('products').textContent = 'Toko contoh sedang dimatikan.'; return; }
+  products = d.products;
+  $('products').replaceChildren(...products.map((p, i) => {
+    const el = document.createElement('div'); el.className = 'prod';
+    el.innerHTML = '<div class="tile"></div><div class="t"><b></b><small></small></div><span class="price"></span><button class="add">Tambah</button>';
+    el.querySelector('.tile').style.background = COLORS[i % COLORS.length];
+    el.querySelector('.tile').textContent = p.name[0];
+    el.querySelector('b').textContent = p.name;
+    el.querySelector('small').textContent = p.desc;
+    el.querySelector('.price').textContent = rp(p.price);
+    el.querySelector('.add').onclick = () => change(p.id, 1);
+    return el;
+  }));
+  render();
+});
+
+function change(id, d) {
+  if (locked) return;
+  const n = Math.min(10, Math.max(0, (cart[id] || 0) + d));
+  if (n) cart[id] = n; else delete cart[id];
+  render(); schedule();
+}
+function total() { return products.reduce((s, p) => s + p.price * (cart[p.id] || 0), 0); }
+
+function render() {
+  const ids = Object.keys(cart);
+  $('total').textContent = rp(total());
+  if (!ids.length) { $('lines').innerHTML = '<div class="empty">Keranjang masih kosong.</div>'; return; }
+  $('lines').replaceChildren(...ids.map(id => {
+    const p = products.find(x => x.id === id), el = document.createElement('div'); el.className = 'line';
+    el.innerHTML = '<span></span><span class="qty"><button class="q" aria-label="Kurangi">−</button><span></span><button class="q" aria-label="Tambah">+</button></span><b style="font:600 14px var(--mono)"></b>';
+    el.firstChild.textContent = p.name;
+    const [m, pl] = el.querySelectorAll('.q'); m.disabled = pl.disabled = locked;
+    el.querySelector('.qty span').textContent = cart[id];
+    m.onclick = () => change(id, -1); pl.onclick = () => change(id, 1);
+    el.lastChild.textContent = rp(p.price * cart[id]);
+    return el;
+  }));
+}
+
+function reset() { clearInterval(tPoll); clearInterval(tClock); cur = null; document.body.className = ''; $('err').textContent = ''; }
+function schedule() {
+  clearTimeout(tDebounce); reset(); seq++;
+  if (!total()) { $('pay').classList.remove('on'); return; }
+  $('pay').classList.add('on'); $('qr').hidden = true; $('ph').hidden = false; $('ph').textContent = 'Membuat QRIS…';
+  $('status').textContent = 'Menunggu pembayaran'; $('timer').textContent = '--:--';
+  tDebounce = setTimeout(make, 600);
+}
+async function make() {
+  const my = seq;
+  try {
+    const r = await fetch('/api/demo/checkout', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ items: Object.entries(cart).map(([id, qty]) => ({ id, qty })) }) });
+    const d = await r.json();
+    if (my !== seq) return;
+    if (!d.success) { $('ph').textContent = 'Gagal membuat QRIS'; $('err').textContent = d.message; return; }
+    cur = d.data; offset = cur.server_now - Date.now();
+    $('qr').src = '/qr/' + cur.qris_id + '?format=raw'; $('qr').hidden = false; $('ph').hidden = true;
+    tick(); tClock = setInterval(tick, 1000); tPoll = setInterval(check, 8000);
+  } catch (e) { if (my === seq) { $('ph').textContent = 'Gagal membuat QRIS'; $('err').textContent = 'Server tidak terjangkau.'; } }
+}
+function tick() {
+  const left = cur.expires_at - (Date.now() + offset);
+  if (left <= 0) return gone();
+  $('timer').textContent = String(Math.floor(left / 60000)).padStart(2, '0') + ':' + String(Math.floor(left % 60000 / 1000)).padStart(2, '0');
+}
+async function check() {
+  if (!cur || busy) return; busy = true; const my = seq;
+  try {
+    const d = await (await fetch('/api/qr-status/' + cur.qris_id)).json();
+    if (my !== seq) return;
+    if (d.paid) paid(); else if (d.status === 'EXPIRED') gone();
+  } catch (e) {} finally { busy = false; }
+}
+function paid() {
+  clearInterval(tPoll); clearInterval(tClock); locked = true; render();
+  document.body.className = 'done'; $('stamp').textContent = 'LUNAS'; $('timer').textContent = '--:--';
+  $('status').textContent = 'Pembayaran diterima. Terima kasih!';
+  $('again').textContent = 'Belanja lagi'; $('again').onclick = shopAgain;
+}
+function gone() {
+  clearInterval(tPoll); clearInterval(tClock);
+  document.body.className = 'gone'; $('stamp').textContent = 'KEDALUWARSA'; $('timer').textContent = '00:00';
+  $('status').textContent = 'Waktu habis'; $('again').textContent = 'Buat QRIS baru';
+  $('again').onclick = () => schedule();
+}
+function shopAgain() { locked = false; cart = {}; seq++; reset(); $('pay').classList.remove('on'); render(); }
+</script>
+</body>
+</html>

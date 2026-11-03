@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Self Checkout</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/assets/css/checkout.css">
+</head>
+<body class="kiosk-body text-gray-800">
+
+    <!-- Tombol rahasia admin (lokasi & perilaku asli dipertahankan) -->
+    <button onclick="window.location.hash='#admin'; window.location.reload();" class="absolute top-0 left-0 w-16 h-16 opacity-0 z-50 cursor-default"></button>
+
+    <!-- ===== HALAMAN 1: SCANNER + KERANJANG ===== -->
+    <div id="scan-view" class="view fit hidden">
+        <div class="layout">
+            <section class="cam" aria-label="Kamera AI Scanner">
+                <!-- Stream asli AI Scanner. Elemen ini TIDAK boleh dihapus dari DOM: inference berjalan selama stream terbuka. -->
+                <img id="video-stream" src="/video_feed" alt="Tampilan kamera AI Scanner">
+                <div id="cam-off" class="cam-off"><div><i class="fa-solid fa-video-slash" style="font-size:2rem"></i><p style="margin:12px 0 0;font-weight:600">Kamera tidak tersedia</p><p style="margin:4px 0 0;font-size:.85rem">Periksa koneksi kamera lalu muat ulang halaman.</p></div></div>
+                <div class="cam-top">
+                    <div class="logo"><i class="fa-solid fa-cart-shopping"></i></div>
+                    <h1>AI Product Scanner</h1>
+                    <span id="scan-chip" class="chip"><span class="dot"></span><span id="scan-chip-text">Siap memindai</span></span>
+                </div>
+                <div id="guide" class="guide"></div>
+                <div class="guide-hint" id="guide-hint">Letakkan satu barang di dalam kotak</div>
+                <div id="toast" class="toast" role="status"><i class="fa-solid fa-circle-check"></i><span id="toast-text"></span></div>
+            </section>
+
+            <aside class="panel" aria-label="Keranjang belanja">
+                <div class="panel-head"><h2>Keranjang belanja</h2><span id="cart-badge" class="badge">0 jenis produk</span></div>
+                <ul id="cart-items" class="cart-list"></ul>
+                <div class="foot sticky">
+                    <div class="row"><span class="muted">Jenis produk</span><span id="sum-types">0</span></div>
+                    <div class="row"><span class="muted">Total kuantitas</span><span id="sum-qty">0</span></div>
+                    <div class="row total"><span>Total harga</span><span id="sum-total">Rp0</span></div>
+                    <div id="auto-box" class="hidden"><div class="auto" id="auto-text"></div><div class="bar" style="margin-top:6px"><i id="auto-bar"></i></div></div>
+                    <button id="btn-pay" class="btn btn-primary" disabled>Lanjut ke Pembayaran <i class="fa-solid fa-arrow-right"></i></button>
+                    <button id="btn-clear" class="link hidden">Kosongkan keranjang</button>
+                </div>
+            </aside>
+        </div>
+    </div>
+
+    <!-- ===== HALAMAN 2: PAYMENT ===== -->
+    <div id="pay-view" class="view fit hidden">
+        <div class="layout pay">
+            <section class="panel" aria-label="Ringkasan belanja">
+                <div class="panel-head"><h2>Ringkasan belanja</h2><span id="pay-badge" class="badge"></span></div>
+                <ul id="pay-items" class="sum-list"></ul>
+                <div class="foot">
+                    <div class="row"><span class="muted">Total belanja</span><span id="pay-base">Rp0</span></div>
+                    <div class="row hidden" id="pay-code-row"><span class="muted">Kode unik</span><span id="pay-code">Rp0</span></div>
+                    <div class="row total"><span>Total bayar</span><span id="pay-total">Rp0</span></div>
+                </div>
+            </section>
+
+            <section class="panel" aria-label="Pembayaran QRIS">
+                <div class="panel-head"><h2>Pembayaran QRIS</h2></div>
+                <div class="qr-wrap">
+                    <div id="qr-box" class="qr">
+                        <img id="qr-img" alt="Kode QRIS pembayaran" class="hidden">
+                        <div id="qr-msg" class="qr-msg show"><span><span class="spin"></span>Menyiapkan QRIS...</span></div>
+                    </div>
+                    <div>
+                        <div id="pay-status" style="font-weight:700"><span class="spin"></span>Menunggu pembayaran...</div>
+                        <div class="muted" style="font-size:.88rem;margin-top:4px">Buka e-wallet atau mobile banking, lalu pindai kode QR.</div>
+                    </div>
+                    <div style="width:100%">
+                        <div class="muted" style="font-size:.85rem">QR valid sampai</div>
+                        <div id="pay-count" class="count">05:00</div>
+                        <div class="bar" style="margin-top:10px"><i id="pay-bar" style="width:100%"></i></div>
+                    </div>
+                    <div id="pay-note" class="note hidden"></div>
+                    <div style="display:flex;gap:10px;width:100%;flex-wrap:wrap">
+                        <button id="btn-back" class="btn btn-ghost" style="flex:1"><i class="fa-solid fa-arrow-left"></i> Kembali ke keranjang</button>
+                        <button id="btn-retry" class="btn btn-primary hidden" style="flex:1"></button>
+                    </div>
+                    <button id="btn-dev" class="link hidden">Simulasi bayar (khusus pengembangan)</button>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <!-- ===== HALAMAN 3: PEMBAYARAN BERHASIL ===== -->
+    <div id="success-view" class="view hidden">
+        <div class="ok-wrap">
+            <div class="ok-card">
+                <svg class="check" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="46"/><path d="M30 52l14 14 27-29"/></svg>
+                <h1>Pembayaran berhasil!</h1>
+                <p style="margin:0;font-size:1.1rem">Terima kasih, telah berbelanja.</p>
+                <div class="detail">
+                    <div class="row"><span class="muted">Nomor transaksi</span><b id="ok-trx"></b></div>
+                    <div class="row"><span class="muted">Waktu</span><span id="ok-time"></span></div>
+                    <div class="row"><span class="muted">Metode</span><span id="ok-method"></span></div>
+                    <div class="row total"><span>Total bayar</span><span id="ok-total" style="font-size:1.4rem"></span></div>
+                    <ul id="ok-items" class="hidden"></ul>
+                </div>
+                <button id="btn-detail" class="link">Lihat detail transaksi</button>
+                <div class="muted" id="ok-count">Kembali ke scanner dalam 5 dtk</div>
+                <button id="btn-new" class="btn btn-primary" style="width:100%">Transaksi baru</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="admin-view" class="hidden h-full bg-gray-100 p-8 overflow-y-auto">
+        <div class="max-w-4xl mx-auto">
+            <div class="flex justify-between items-center mb-8">
+                <h1 class="text-3xl font-black text-gray-800">Dashboard Admin</h1>
+                <button onclick="window.location.hash = ''; location.reload();" class="bg-gray-800 text-white px-6 py-2 rounded-lg font-bold shadow hover:bg-gray-700">Tutup Admin</button>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                
+                <!-- Upload Model -->
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 md:col-span-1">
+                    <h2 class="text-xl font-bold mb-4">Upload Model AI</h2>
+                    <p class="text-sm text-gray-500 mb-4">Unggah file <code class="bg-gray-100 px-1 rounded">.pt</code> YOLO. Database produk akan diperbarui otomatis.</p>
+                    <input type="file" id="model-file" accept=".pt" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 mb-4"/>
+                    <button onclick="uploadModel()" class="w-full bg-blue-600 text-white py-2 rounded-xl font-bold hover:bg-blue-700 transition">Unggah & Terapkan</button>
+                </div>
+
+                <!-- Pengaturan Harga -->
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 md:col-span-2">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-xl font-bold">Database Produk & Harga</h2>
+                        <div class="flex gap-4">
+                            <button onclick="restoreDeleted()" class="text-sm text-gray-500 underline">Pulihkan produk terhapus</button>
+                            <button onclick="loadProducts()" class="text-sm text-blue-600 underline">Refresh</button>
+                        </div>
+                    </div>
+                    
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left">
+                            <thead class="bg-gray-50 text-gray-600 font-semibold text-sm">
+                                <tr>
+                                    <th class="px-4 py-3 rounded-tl-lg">ID</th>
+                                    <th class="px-4 py-3">Nama (Dari AI Label)</th>
+                                    <th class="px-4 py-3">Harga (Rp)</th>
+                                    <th class="px-4 py-3">Aktif</th>
+                                    <th class="px-4 py-3 rounded-tr-lg">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="product-table-body" class="divide-y text-sm">
+                                <!-- Data Tabel Dimasukkan dari Database -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script src="/assets/js/checkout.js"></script>
+    <script src="/assets/js/admin.js"></script>
+</body>
+</html>

@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kasir QRIS</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#15222B;--muted:#5E6C77;--line:#D5DDE2;--bg:#E8EDF0;--paper:#fff;--qris:#D9261C;--ok:#0F8F5F;--warn:#9A5B00;
+--sans:'IBM Plex Sans',system-ui,sans-serif;--mono:'IBM Plex Mono',ui-monospace,monospace}
+@media(prefers-color-scheme:dark){:root{--ink:#E8EEF2;--muted:#9AA9B4;--line:#33424D;--bg:#10181E;--paper:#1A252D;--qris:#FF6A5F;--ok:#3DD598;--warn:#F0B35A}}
+*{box-sizing:border-box;margin:0}
+[hidden]{display:none!important}
+body{font-family:var(--sans);background:var(--bg);color:var(--ink);padding:24px 16px 48px}
+.wrap{max-width:980px;margin:0 auto}
+header{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:20px}
+h1{font-size:22px;font-weight:600}
+h2{font-size:15px;font-weight:600;margin-bottom:14px}
+.grid{display:grid;grid-template-columns:minmax(0,380px) minmax(0,1fr);gap:16px;align-items:start}
+@media(max-width:760px){.grid{grid-template-columns:1fr}}
+.card{background:var(--paper);border-radius:10px;padding:20px;box-shadow:0 1px 2px rgba(0,0,0,.08)}
+label.f{display:block;font-size:13px;color:var(--muted);margin:14px 0 6px}
+input[type=text],input[type=password]{width:100%;font:500 15px var(--sans);color:var(--ink);background:transparent;border:1px solid var(--line);border-radius:8px;padding:11px 12px}
+.money{display:flex;align-items:center;border:1px solid var(--line);border-radius:8px;padding:0 12px}
+.money:focus-within,input:focus-visible{outline:2px solid var(--qris);outline-offset:2px}
+.money span{font:500 18px var(--mono);color:var(--muted)}
+.money input{border:0;outline:0;font:600 24px var(--mono);padding:10px 8px;width:100%;color:var(--ink);background:transparent}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.chip{font:500 13px var(--mono);border:1px solid var(--line);background:none;color:var(--ink);border-radius:20px;padding:5px 11px;cursor:pointer}
+.chip:hover{border-color:var(--ink)}
+.check{display:flex;gap:10px;align-items:flex-start;margin-top:16px;font-size:14px}
+.check small{display:block;color:var(--muted);font-size:12.5px;margin-top:2px}
+.primary{width:100%;margin-top:18px;font:600 15px var(--sans);background:var(--qris);color:#fff;border:0;border-radius:8px;padding:13px;cursor:pointer}
+.primary:disabled{opacity:.5}
+button:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+.err{color:var(--qris);font-size:13.5px;margin-top:10px;min-height:1em}
+.pill{display:inline-block;font:600 12px var(--sans);padding:3px 9px;border-radius:12px}
+.PENDING{background:rgba(154,91,0,.12);color:var(--warn)}.PAID{background:rgba(15,143,95,.14);color:var(--ok)}.EXPIRED{background:rgba(94,108,119,.15);color:var(--muted)}
+.result{display:none;margin-top:16px;border-top:2px dashed var(--line);padding-top:16px;text-align:center}
+.result img{width:200px;height:200px;background:#fff;border:1px solid var(--line);border-radius:8px;padding:6px}
+.result .amt{font:600 26px var(--mono);margin:8px 0 4px}
+.result .sub{font:500 12.5px var(--mono);color:var(--muted);margin-bottom:8px}
+.acts{display:flex;gap:8px;margin-top:12px}
+.acts button{flex:1;font:500 13.5px var(--sans);color:var(--ink);background:none;border:1px solid var(--line);border-radius:8px;padding:9px;cursor:pointer}
+.acts button:hover{border-color:var(--ink)}
+.list{display:grid}
+.item{display:grid;grid-template-columns:1fr auto;gap:2px 12px;padding:12px 0;border-top:1px solid var(--line);cursor:pointer;text-align:left;background:none;border-left:0;border-right:0;border-bottom:0;color:var(--ink);font-family:var(--sans);width:100%}
+.item:first-child{border-top:0}
+.item b{font:600 16px var(--mono)}.item small{color:var(--muted);font-size:12.5px}
+.item .pill{justify-self:end;align-self:center;grid-row:1/3;grid-column:2}
+.empty{color:var(--muted);font-size:14px;padding:12px 0}
+.gate{max-width:360px;margin:12vh auto}
+.dot{font-size:13px;color:var(--muted)}
+.dot i{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--line);margin-right:6px}
+.dot.on i{background:var(--ok)}.dot.off i{background:var(--qris)}
+a.lnk,button.lnk{color:var(--muted);font:13px var(--sans);background:none;border:0;cursor:pointer;text-decoration:underline}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="card gate" id="gate">
+  <h1>Kasir QRIS</h1>
+  <label class="f" for="key">API Key</label>
+  <input type="password" id="key" autocomplete="current-password">
+  <button class="primary" id="login">Masuk</button>
+  <div class="err" id="gate-err"></div>
+</div>
+
+<div id="main" hidden>
+<header>
+  <h1>Kasir QRIS</h1>
+  <div><span class="dot" id="tok"><i></i><span>Sesi GoPay: memeriksa…</span></span> &nbsp; <a class="lnk" href="/">Toko contoh</a> &nbsp; <button class="lnk" id="logout">Keluar</button></div>
+</header>
+<div class="grid">
+  <section class="card">
+    <h2>Buat QRIS baru</h2>
+    <label class="f" for="amt" style="margin-top:0">Nominal</label>
+    <div class="money"><span>Rp</span><input id="amt" inputmode="numeric" autocomplete="off" placeholder="0"></div>
+    <div class="chips" id="chips"></div>
+    <label class="f" for="ref">Catatan atau ID order (opsional)</label>
+    <input type="text" id="ref" maxlength="64">
+    <label class="check"><input type="checkbox" id="uniq"><span>Tambah kode unik 1–99<small>Nominal tiap pembayaran jadi berbeda, jadi tidak tertukar kalau ada beberapa pembeli sekaligus.</small></span></label>
+    <button class="primary" id="make">Buat QRIS</button>
+    <div class="err" id="err" role="alert"></div>
+    <div class="result" id="result">
+      <img id="r-img" alt="QRIS">
+      <div class="amt" id="r-amt"></div>
+      <div class="sub" id="r-sub"></div>
+      <span class="pill PENDING" id="r-pill">Menunggu pembayaran</span>
+      <div class="acts"><button id="copy">Salin link</button><button id="open">Buka halaman bayar</button></div>
+    </div>
+  </section>
+  <section class="card">
+    <h2>Pembayaran terbaru</h2>
+    <div class="list" id="list"><div class="empty">Belum ada pembayaran. Buat QRIS pertama di sebelah.</div></div>
+  </section>
+</div>
+</div>
+</div>
+<script>
+const $ = s => document.getElementById(s);
+const rp = n => 'Rp ' + Number(n).toLocaleString('id-ID');
+const LABEL = { PENDING: 'Menunggu', PAID: 'Lunas', EXPIRED: 'Kedaluwarsa' };
+let key = sessionStorage.getItem('qris_key') || '', current = null, payments = [];
+
+const api = (url, opt = {}) => fetch(url, { ...opt, headers: { 'x-api-key': key, 'Content-Type': 'application/json' } });
+
+async function enter(k) {
+  key = k;
+  const r = await api('/api/payments');
+  if (r.status === 401) { $('gate-err').textContent = 'API Key tidak cocok.'; return; }
+  sessionStorage.setItem('qris_key', key);
+  $('gate').hidden = true; $('main').hidden = false;
+  render((await r.json()).payments);
+  tokenStatus();
+  setInterval(refresh, 10000);
+}
+$('login').onclick = () => enter($('key').value.trim());
+$('key').onkeydown = e => e.key === 'Enter' && $('login').click();
+$('logout').onclick = () => { sessionStorage.removeItem('qris_key'); location.reload(); };
+if (key) enter(key);
+
+async function tokenStatus() {
+  const el = $('tok');
+  try {
+    const d = await (await api('/token-status')).json();
+    const ok = d.success && d.data.token_status === 'valid';
+    el.className = 'dot ' + (ok ? 'on' : 'off');
+    el.lastElementChild.textContent = ok ? 'Sesi GoPay aktif' : 'Sesi GoPay bermasalah: jalankan node login.js';
+  } catch (e) { el.className = 'dot off'; el.lastElementChild.textContent = 'Server tidak terjangkau'; }
+}
+
+// Nominal: tampilkan dengan titik ribuan
+const amt = $('amt');
+amt.oninput = () => { const n = amt.value.replace(/\D/g, '').replace(/^0+/, ''); amt.value = n ? Number(n).toLocaleString('id-ID') : ''; };
+const val = () => parseInt(amt.value.replace(/\D/g, '') || '0', 10);
+[10000, 25000, 50000, 100000].forEach(n => {
+  const b = document.createElement('button'); b.className = 'chip'; b.textContent = n.toLocaleString('id-ID');
+  b.onclick = () => { amt.value = n.toLocaleString('id-ID'); amt.focus(); };
+  $('chips').append(b);
+});
+
+$('make').onclick = async () => {
+  $('err').textContent = '';
+  if (!val()) { $('err').textContent = 'Isi nominal dulu.'; return; }
+  $('make').disabled = true;
+  try {
+    const r = await api('/create-qris', { method: 'POST', body: JSON.stringify({ amount: val(), ref: $('ref').value, unique_code: $('uniq').checked ? 1 : 0 }) });
+    const d = await r.json();
+    if (!d.success) { $('err').textContent = d.message; return; }
+    current = d.data;
+    $('r-img').src = '/qr/' + current.qris_id + '?format=raw';
+    $('r-amt').textContent = rp(current.amount);
+    $('r-sub').textContent = current.unique_code ? rp(current.base_amount) + ' + kode unik ' + current.unique_code : current.trx_id;
+    setPill('PENDING');
+    $('result').style.display = 'block';
+    refresh();
+  } catch (e) { $('err').textContent = 'Gagal menghubungi server.'; }
+  finally { $('make').disabled = false; }
+};
+function setPill(s) { const p = $('r-pill'); p.className = 'pill ' + s; p.textContent = { PENDING: 'Menunggu pembayaran', PAID: 'Lunas', EXPIRED: 'Kedaluwarsa' }[s]; }
+$('copy').onclick = async () => { await navigator.clipboard.writeText(current.qris_url); $('copy').textContent = 'Link tersalin'; setTimeout(() => $('copy').textContent = 'Salin link', 1500); };
+$('open').onclick = () => window.open(current.qris_url, '_blank');
+
+async function refresh() {
+  // cek status ke GoPay hanya untuk QRIS yang masih menunggu (maks 5, server membatasi frekuensi)
+  const pending = payments.filter(p => p.status === 'PENDING').slice(0, 5);
+  await Promise.all(pending.map(p => fetch('/api/qr-status/' + p.qris_id).catch(() => null)));
+  const r = await api('/api/payments').catch(() => null);
+  if (r && r.ok) render((await r.json()).payments);
+}
+function render(list) {
+  payments = list;
+  if (current) { const c = list.find(p => p.qris_id === current.qris_id); if (c) setPill(c.status); }
+  const box = $('list');
+  if (!list.length) return;
+  box.replaceChildren(...list.map(p => {
+    const b = document.createElement('button'); b.className = 'item';
+    const time = new Date(p.paid_at || p.created_at).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+    b.innerHTML = '<b></b><span class="pill ' + p.status + '">' + LABEL[p.status] + '</span><small></small>';
+    b.querySelector('b').textContent = rp(p.amount);
+    b.querySelector('small').textContent = (p.ref ? p.ref + ' · ' : '') + p.trx_id + ' · ' + time;
+    b.onclick = () => window.open(p.qris_url, '_blank');
+    return b;
+  }));
+}
+</script>
+</body>
+</html>
